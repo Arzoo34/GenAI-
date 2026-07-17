@@ -138,6 +138,7 @@ function ListingPage() {
       setCurrentListing({
         ...response,
         uploadedImageUrl: primaryImageUrl,
+        declared_category: declaredCategory,
       });
       navigate({ to: "/listing/preview" });
     } catch (err: unknown) {

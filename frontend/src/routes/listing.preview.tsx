@@ -1,11 +1,23 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { ChevronLeft, Star, Truck, ShieldCheck, Pencil, Send, Wrench, Info } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  ChevronLeft,
+  Star,
+  Truck,
+  ShieldCheck,
+  Pencil,
+  Send,
+  Wrench,
+  Info,
+  ChevronDown,
+  Mic,
+} from "lucide-react";
 import { Card, PrimaryButton, GhostButton, Gauge } from "@/components/ui-bits";
 import { useTranslation } from "@/lib/language-context";
 import { useAppStore } from "@/store/appStore";
 import sareeFallback from "@/assets/product-saree.jpg";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/listing/preview")({
   head: () => ({ meta: [{ title: "Listing Preview — शुरुआत AI" }] }),
@@ -27,8 +39,18 @@ type Issue = {
   explanation?: string;
 };
 
+function KantriMotifDivider({ className }: { className?: string }) {
+  return (
+    <div className={cn("flex items-center justify-center gap-2 my-6", className)} aria-hidden>
+      <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-primary/30" />
+      <span className="text-primary/45 text-xs font-display">❖ ❖ ❖</span>
+      <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-primary/30" />
+    </div>
+  );
+}
+
 function PreviewPage() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const navigate = useNavigate();
   const currentListing = useAppStore((s) => s.currentListing);
   const resolveIssue = useAppStore((s) => s.resolveIssue);
@@ -48,12 +70,74 @@ function PreviewPage() {
   const readiness = Math.round(100 - riskScore);
   const issues = (currentListing.issues_found ?? []) as Issue[];
   const imageSrc = (currentListing.uploadedImageUrl as string) || sareeFallback;
-  const sizes = listing.size_chart ? Object.keys(listing.size_chart) : ["Free Size"];
+  const initialSizes = listing.size_chart ? Object.keys(listing.size_chart) : ["Free"];
+
+  const category = currentListing?.declared_category || "kurti";
+  const isApparel = category === "kurti" || category === "saree";
+
+  // Form states
+  const [productName, setProductName] = useState(listing.title || "");
+  const [price, setPrice] = useState(listing.price || 1499);
+  const [material, setMaterial] = useState("");
+  const [color, setColor] = useState("");
+  const [sleeve, setSleeve] = useState("");
+  const [occasion, setOccasion] = useState("");
+  const [selectedSizes, setSelectedSizes] = useState<string[]>(initialSizes);
+  const [description, setDescription] = useState(
+    listing.bullets && listing.bullets.length > 0
+      ? listing.bullets.join("\n")
+      : `${t("desc1")} ${t("desc2")}`
+  );
+  
+  const [showDetails, setShowDetails] = useState(true);
+  const [isTranscribing, setIsTranscribing] = useState(false);
 
   function handleFixIssue(index: number) {
-    // Temporary client-side simplification: no live recalculate-risk endpoint yet.
-    // Optimistically remove the issue and subtract its contribution_pct from risk_score.
     resolveIssue(index);
+  }
+
+  function handleDescriptionSpeech() {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Voice input is not supported in this browser. Try Chrome or Safari.");
+      return;
+    }
+
+    if (isTranscribing) {
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = language === "hi" ? "hi-IN" : "en-IN";
+
+    recognition.onstart = () => {
+      setIsTranscribing(true);
+    };
+
+    recognition.onend = () => {
+      setIsTranscribing(false);
+    };
+
+    recognition.onerror = (e: any) => {
+      console.error("Speech recognition error:", e);
+      setIsTranscribing(false);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (transcript) {
+        setDescription((prev) => {
+          const spacing = prev.trim() ? " " : "";
+          return prev + spacing + transcript;
+        });
+      }
+    };
+
+    recognition.start();
   }
 
   return (
@@ -73,8 +157,9 @@ function PreviewPage() {
         </div>
       )}
 
+      {/* Buyer Preview Card (Top) */}
       <div className="relative">
-        <img src={imageSrc} alt={listing.title || "Product"} className="h-96 w-full object-cover object-top" width={800} height={800} loading="lazy" />
+        <img src={imageSrc} alt={productName || "Product"} className="h-96 w-full object-cover object-top" width={800} height={800} loading="lazy" />
         <div className="absolute left-3 top-3 rounded-full bg-card/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-primary backdrop-blur">
           {t("aiGenerated")}
         </div>
@@ -82,12 +167,12 @@ function PreviewPage() {
 
       <div className="px-5 pt-5">
         <h1 className="font-display text-xl font-bold leading-snug text-foreground">
-          {listing.title || t("sareeTitle")}
+          {productName || t("sareeTitle")}
         </h1>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <div className="flex items-baseline gap-2">
             <span className="font-display text-2xl font-extrabold text-foreground">
-              ₹{(listing.price ?? 1499).toLocaleString("en-IN")}
+              ₹{Number(price).toLocaleString("en-IN")}
             </span>
           </div>
           <div className="flex items-center gap-1 rounded-full bg-[oklch(0.55_0.14_145)]/10 px-2 py-0.5">
@@ -106,56 +191,188 @@ function PreviewPage() {
           </div>
         )}
 
-        <div className="mt-4">
-          <p className="text-xs font-semibold text-foreground/70">{t("selectSize")}</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {sizes.map((s, i) => (
-              <button
-                key={s}
-                type="button"
-                className={`rounded-xl border px-4 py-2 text-sm font-semibold ${i === 0 ? "border-primary bg-primary/10 text-primary" : "border-border bg-card"}`}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-5 space-y-2 rounded-2xl border border-border bg-card p-4">
+        <div className="mt-4 space-y-2 rounded-2xl border border-border bg-card p-4">
           <Row icon={<Truck className="h-4 w-4 text-secondary" />} label={t("deliveryBy")} />
           <Row icon={<ShieldCheck className="h-4 w-4 text-[oklch(0.55_0.14_145)]" />} label={t("codBadge")} />
         </div>
+      </div>
 
-        <div className="mt-5">
-          <h3 className="font-display font-semibold">{t("aboutItem")}</h3>
-          {listing.bullets && listing.bullets.length > 0 ? (
-            <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-foreground/80">
-              {listing.bullets.map((b) => (
-                <li key={b} className="flex gap-2">
-                  <span className="text-primary">•</span>
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-sm leading-relaxed text-foreground/80">
-              {t("desc1")} {t("desc2")}
-            </p>
-          )}
+      {/* Product Attributes Form Section */}
+      <div className="mt-6 px-5">
+        <div className="flex items-center justify-between border-b border-border/50 pb-2">
+          <h3 className="font-display font-bold text-lg text-foreground">Product Attributes</h3>
+          <button
+            type="button"
+            onClick={() => setShowDetails(!showDetails)}
+            className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-dark transition animate-pulse-subtle"
+          >
+            {showDetails ? "Hide details" : "Show details"}
+            <ChevronDown className={`h-4 w-4 transform transition-transform duration-200 ${showDetails ? "rotate-180" : ""}`} />
+          </button>
+        </div>
 
-          {listing.size_chart && Object.keys(listing.size_chart).length > 0 && (
-            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              {Object.entries(listing.size_chart).map(([k, v]) => (
-                <div key={k} className="flex justify-between border-b border-dashed border-border/70 py-1.5">
-                  <dt className="text-muted-foreground">{k}</dt>
-                  <dd className="font-semibold text-foreground">{v}</dd>
+        <AnimatePresence initial={false}>
+          {showDetails && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden mt-4 space-y-4"
+            >
+              {/* Product Name & Price Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                    Product Name
+                  </label>
+                  <input
+                    type="text"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    placeholder="e.g. Pink Banarasi Silk Saree"
+                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                  />
                 </div>
-              ))}
-            </dl>
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                    Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(Number(e.target.value))}
+                    placeholder="1499"
+                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Material & Color paired row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                    Material / Fabric
+                  </label>
+                  <input
+                    type="text"
+                    value={material}
+                    onChange={(e) => setMaterial(e.target.value)}
+                    placeholder="e.g. Silk, Cotton"
+                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                    Colour / Pattern
+                  </label>
+                  <input
+                    type="text"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                    placeholder="e.g. Indigo Blue, Floral"
+                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Sleeve & Occasion paired row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {isApparel && (
+                  <div>
+                    <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                      Sleeve
+                    </label>
+                    <input
+                      type="text"
+                      value={sleeve}
+                      onChange={(e) => setSleeve(e.target.value)}
+                      placeholder="e.g. Half Sleeve, Sleeveless"
+                      className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                    />
+                  </div>
+                )}
+                <div className={isApparel ? "" : "md:col-span-2"}>
+                  <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                    Occasion
+                  </label>
+                  <input
+                    type="text"
+                    value={occasion}
+                    onChange={(e) => setOccasion(e.target.value)}
+                    placeholder="e.g. Festive, Casual"
+                    className="w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Sizes Multi-Select */}
+              <div>
+                <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+                  Sizes
+                </label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {["Free", "S", "M", "L", "XL", "XXL"].map((size) => {
+                    const isSelected = selectedSizes.includes(size);
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedSizes(selectedSizes.filter((s) => s !== size));
+                          } else {
+                            setSelectedSizes([...selectedSizes, size]);
+                          }
+                        }}
+                        className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-all btn-lift ${
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary shadow-sm"
+                            : "border-border bg-card text-muted-foreground"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
           )}
+        </AnimatePresence>
+
+        {/* KantriMotifDivider */}
+        <KantriMotifDivider />
+
+        {/* Description Section with corner Mic button */}
+        <div className="mt-4">
+          <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mb-1">
+            Description
+          </label>
+          <div className="relative mt-1">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Tell buyers what makes it special..."
+              rows={5}
+              className="w-full rounded-xl border border-border bg-white pl-4 pr-12 py-3 text-sm text-foreground focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none resize-none transition-all"
+            />
+            <button
+              type="button"
+              onClick={handleDescriptionSpeech}
+              className={`absolute bottom-3 right-3 grid h-9 w-9 place-items-center rounded-full shadow-md text-white transition-all btn-lift ${
+                isTranscribing
+                  ? "bg-destructive animate-pulse ring-4 ring-destructive/40"
+                  : "bg-primary hover:bg-primary-dark"
+              }`}
+              title="Record description"
+            >
+              <Mic className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Return Risk Card */}
       <div className="mt-6 px-5">
         <Card className="bg-gradient-to-br from-[oklch(0.97_0.03_140)] to-card">
           <div className="flex items-center gap-4">
