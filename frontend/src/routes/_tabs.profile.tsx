@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Store, Languages, Bell, HelpCircle, Shield, LogOut, ChevronRight, Award } from "lucide-react";
 import { Card, PageHeader, RangoliDivider } from "@/components/ui-bits";
 import { useTranslation } from "@/lib/language-context";
@@ -13,6 +13,8 @@ export const Route = createFileRoute("/_tabs/profile")({
 function ProfilePage() {
   const { t, businessName } = useTranslation();
   const publishedListings = useAppStore((s) => s.publishedListings);
+  const setCurrentListing = useAppStore((s) => s.setCurrentListing);
+  const navigate = useNavigate();
   const [showStoreDetails, setShowStoreDetails] = useState(false);
 
   const items = [
@@ -77,7 +79,38 @@ function ProfilePage() {
                     </div>
                   ) : (
                     publishedListings.map((product) => (
-                      <div key={product.id} className="flex gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm hover:shadow-md transition-shadow">
+                      <button
+                        key={product.id}
+                        onClick={() => {
+                          setCurrentListing({
+                            final_listing: {
+                              title: product.title,
+                              bullets: product.bullets || [
+                                `High-quality ${product.material || "fabric"} material for comfort`,
+                                `Perfect for ${product.occasion || "daily"} wear`,
+                                `Color: ${product.colour || "Standard"}`
+                              ],
+                              size_chart: product.size_chart || { Free: "Standard Size Fit" },
+                              price: product.price,
+                              keywords: product.keywords || [product.title.toLowerCase()],
+                              material: product.material,
+                              fabric: product.fabric || product.material,
+                              colour: product.colour,
+                              pattern: product.pattern || "Solid",
+                              sleeve: product.sleeve,
+                              occasion: product.occasion,
+                              available_sizes: product.available_sizes
+                            },
+                            risk_score: product.risk_score ?? 15,
+                            issues_found: product.issues_found ?? [],
+                            pincode_risk: { risk_level: "low", estimated_return_rate_pct: 8.4 },
+                            declared_category: product.category,
+                            uploadedImageUrl: product.uploadedImageUrl
+                          });
+                          navigate({ to: "/listing/preview" });
+                        }}
+                        className="flex w-full text-left gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm hover:shadow-md transition-all btn-lift"
+                      >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <h5 className="font-semibold text-sm text-foreground truncate">{product.title}</h5>
@@ -104,7 +137,7 @@ function ProfilePage() {
                             </div>
                           )}
                         </div>
-                      </div>
+                      </button>
                     ))
                   )}
                 </div>

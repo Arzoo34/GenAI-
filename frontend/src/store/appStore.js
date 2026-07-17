@@ -70,7 +70,21 @@ export const useAppStore = create((set) => ({
       colour: "Blue",
       sleeve: "3/4 Sleeve",
       occasion: "Casual",
-      available_sizes: ["S", "M", "L", "XL"]
+      available_sizes: ["S", "M", "L", "XL"],
+      bullets: [
+        "Pure high-quality soft cotton fabric",
+        "Traditional hand-block print work",
+        "Perfect for daily casual or office wear",
+        "Comfortable fit with 3/4 sleeves",
+        "Machine washable with color-fast guarantee"
+      ],
+      size_chart: {
+        S: "Bust: 36 in, Length: 44 in",
+        M: "Bust: 38 in, Length: 44 in",
+        L: "Bust: 40 in, Length: 45 in",
+        XL: "Bust: 42 in, Length: 45 in"
+      },
+      keywords: ["cotton kurti", "jaipuri print", "casual kurti", "women ethnic wear"]
     },
     {
       id: "listing_02",
@@ -81,7 +95,18 @@ export const useAppStore = create((set) => ({
       colour: "Pink",
       sleeve: "Half Sleeve",
       occasion: "Festive",
-      available_sizes: ["Free"]
+      available_sizes: ["Free"],
+      bullets: [
+        "Premium Banarasi art silk fabric with gold zari border",
+        "Vibrant pink body with intricate floral weave patterns",
+        "Comes with an unstitched matching half-sleeve blouse piece",
+        "Perfect dress code for weddings, festivals, and parties",
+        "Dry clean only to maintain zari and weave shine"
+      ],
+      size_chart: {
+        Free: "Length: 5.5 meters saree, 0.8 meters blouse piece"
+      },
+      keywords: ["pink saree", "banarasi silk", "zari border saree", "wedding wear saree"]
     }
   ],
   addPublishedListing: (listing) => set((state) => ({ publishedListings: [listing, ...state.publishedListings] })),
