@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_tabs/listing")({
   component: ListingPage,
 });
 
-const CATEGORIES = ["kurti", "saree", "footwear", "jewelry", "decor"];
+const CATEGORIES = ["kurti", "saree", "tshirt", "pants", "dress", "footwear", "jewelry", "decor"];
 
 function ListingPage() {
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ function ListingPage() {
   const [isRecordingDescription, setIsRecordingDescription] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  const isApparel = declaredCategory === "kurti" || declaredCategory === "saree";
+  const isApparel = declaredCategory === "kurti" || declaredCategory === "saree" || declaredCategory === "tshirt" || declaredCategory === "pants" || declaredCategory === "dress";
 
   function toggleSizeSelection(sz: string) {
     if (selectedSizes.includes(sz)) {

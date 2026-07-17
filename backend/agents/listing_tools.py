@@ -60,6 +60,9 @@ def check_category_mismatch(declared_category: str, detected_category: str) -> d
         "saree": ["saree", "sari"],
         "sari": ["saree", "sari"],
         "kurti": ["kurti", "kurtas", "kurta", "dress"],
+        "tshirt": ["tshirt", "t-shirt", "tee", "shirt", "top"],
+        "pants": ["pants", "trouser", "trousers", "jeans", "leggings", "pajamas"],
+        "dress": ["dress", "gown", "frock", "maxi"],
         "footwear": ["footwear", "sandals", "sandal", "shoes", "shoe", "flats", "heels", "slippers"],
         "jewelry": ["jewelry", "jewellery", "necklace", "earrings", "ring", "bangle", "bracelet"],
         "home_decor": ["home_decor", "decor", "vase", "planter", "pot", "table", "carpet", "curtain", "lamp"]

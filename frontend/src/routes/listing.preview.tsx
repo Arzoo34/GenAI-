@@ -161,7 +161,7 @@ function PreviewPage() {
   const readiness = Math.round(100 - riskScore);
   const issues = (currentListing.issues_found ?? []) as Issue[];
   const imageSrc = (currentListing.uploadedImageUrl as string) || sareeFallback;
-  const isApparel = currentListing.declared_category === "kurti" || currentListing.declared_category === "saree";
+  const isApparel = currentListing.declared_category === "kurti" || currentListing.declared_category === "saree" || currentListing.declared_category === "tshirt" || currentListing.declared_category === "pants" || currentListing.declared_category === "dress";
 
   function updateListingField(key: string, value: any) {
     if (!currentListing) return;

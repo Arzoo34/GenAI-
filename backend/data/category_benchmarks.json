@@ -128,5 +128,83 @@
       "contribution_pct": 11,
       "explanation": "Bumpy bottoms on tables or desks cause wobbly surfaces, making them unstable on flat floors."
     }
+  ],
+  "tshirt": [
+    {
+      "issue": "fabric_shrinkage_after_wash",
+      "severity": "high",
+      "contribution_pct": 35,
+      "explanation": "Cotton t-shirts often shrink significantly on first wash, leading to complaints that the size is too small."
+    },
+    {
+      "issue": "color_fade_or_bleed",
+      "severity": "medium",
+      "contribution_pct": 25,
+      "explanation": "Vibrant dyes on cheap t-shirt prints bleed onto other clothes or fade rapidly after a few washes."
+    },
+    {
+      "issue": "loose_stitching_at_collar",
+      "severity": "low",
+      "contribution_pct": 20,
+      "explanation": "Poor ribbing finish at the neckline causes the collar to stretch out or look wavy ('bacon neck')."
+    },
+    {
+      "issue": "poor_print_durability",
+      "severity": "medium",
+      "contribution_pct": 20,
+      "explanation": "Rubberized chest prints crack or peel off when ironed or tumble-dried."
+    }
+  ],
+  "pants": [
+    {
+      "issue": "waistband_elastic_failure",
+      "severity": "high",
+      "contribution_pct": 38,
+      "explanation": "Weak elastic bands lose their tension quickly, making the pants loose and unwearable."
+    },
+    {
+      "issue": "seam_splitting_at_crotch",
+      "severity": "high",
+      "contribution_pct": 32,
+      "explanation": "Tight templates or double-stitching failures lead to embarrassing fabric splits during active wear."
+    },
+    {
+      "issue": "color_loss_on_friction",
+      "severity": "medium",
+      "contribution_pct": 20,
+      "explanation": "Indigo dyed pants transfer color to light surfaces, leading to stain complaints."
+    },
+    {
+      "issue": "inseam_length_inaccuracy",
+      "severity": "low",
+      "contribution_pct": 10,
+      "explanation": "Pants running either too long or too short for standard Indian height groups."
+    }
+  ],
+  "dress": [
+    {
+      "issue": "fabric_transparency",
+      "severity": "high",
+      "contribution_pct": 40,
+      "explanation": "Thin synthetic fabrics look sheer under sunlight, requiring separate inner linings which buyers complain about."
+    },
+    {
+      "issue": "zipper_jamming_or_splitting",
+      "severity": "high",
+      "contribution_pct": 28,
+      "explanation": "Substandard concealed back zippers jam or break easily on first adjustment."
+    },
+    {
+      "issue": "loose_fitting_at_waist",
+      "severity": "medium",
+      "contribution_pct": 20,
+      "explanation": "Dresses with no waist tie or elastic run baggier than mockups show, prompting size exchanges."
+    },
+    {
+      "issue": "hem_unraveling",
+      "severity": "low",
+      "contribution_pct": 12,
+      "explanation": "Unfinished bottom hems fray after walking or initial draping tests."
+    }
   ]
 }
