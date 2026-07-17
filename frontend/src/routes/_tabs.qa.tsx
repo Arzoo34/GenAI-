@@ -68,7 +68,8 @@ function QAPage() {
 
   useEffect(() => {
     fetchQna();
-  }, [fetchQna]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language]);
 
   const individualReplies = (qnaData?.individual_replies ?? []) as IndividualReply[];
   const patternFlags = (qnaData?.pattern_flags ?? []) as PatternFlag[];

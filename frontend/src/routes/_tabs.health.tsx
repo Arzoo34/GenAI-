@@ -80,7 +80,8 @@ function HealthPage() {
 
   useEffect(() => {
     fetchBrief();
-  }, [fetchBrief]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [language, sellerId]);
 
   async function handleApplySuggestion() {
     const brief = healthBrief as HealthBrief | null;
