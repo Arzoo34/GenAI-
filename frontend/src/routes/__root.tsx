@@ -13,6 +13,7 @@ import { AppLayout } from "../components/AppLayout";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/error-reporting";
 import { LanguageProvider } from "../lib/language-context";
+import { BackendStatusIndicator } from "../components/BackendStatusIndicator";
 
 function NotFoundComponent() {
   return (
@@ -117,6 +118,7 @@ function RootComponent() {
             <div className="indian-border-minimal-top w-full max-w-[480px] fixed top-0 left-1/2 -translate-x-1/2 z-50 pointer-events-none" />
             <div className="indian-border-minimal-bottom w-full max-w-[480px] fixed bottom-0 left-1/2 -translate-x-1/2 z-50 pointer-events-none" />
 
+            <BackendStatusIndicator />
             <Outlet />
           </AppLayout>
         </div>
