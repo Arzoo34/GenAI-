@@ -74,9 +74,9 @@ function HomePage() {
             <button className="grid h-11 w-11 place-items-center rounded-2xl border border-border bg-card" aria-label="Notifications">
               <Bell className="h-5 w-5 text-foreground/70" />
             </button>
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary to-accent font-display font-bold text-primary-foreground">
+            <Link to="/profile" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary to-accent font-display font-bold text-primary-foreground btn-lift" aria-label="Profile">
               {initial}
-            </div>
+            </Link>
           </div>
         }
       />
