@@ -124,6 +124,16 @@ function PreviewPage() {
   const [detailsExpanded, setDetailsExpanded] = useState(true);
   const [isRecordingDescription, setIsRecordingDescription] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const [published, setPublished] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  function handleEditClick() {
+    setDetailsExpanded(true);
+    setTimeout(() => {
+      titleInputRef.current?.focus();
+      titleInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  }
 
   // Initialize values when currentListing loads
   useEffect(() => {
@@ -270,6 +280,7 @@ function PreviewPage() {
             Product Name / SEO Title
           </label>
           <input
+            ref={titleInputRef}
             type="text"
             value={productName}
             onChange={(e) => {
@@ -529,9 +540,44 @@ function PreviewPage() {
       </div>
 
       <div className="mt-8 flex gap-3 px-5">
-        <GhostButton className="flex-1"><Pencil className="h-4 w-4" /> {t("editListing")}</GhostButton>
-        <PrimaryButton className="flex-1"><Send className="h-5 w-5" /> {t("publishStore").replace("to Store", "")}</PrimaryButton>
+        <GhostButton onClick={handleEditClick} className="flex-1">
+          <Pencil className="h-4 w-4" /> {t("editListing")}
+        </GhostButton>
+        <PrimaryButton onClick={() => setPublished(true)} className="flex-1">
+          <Send className="h-5 w-5" /> {t("publishStore").replace("to Store", "")}
+        </PrimaryButton>
       </div>
+
+      {/* Publish Success Overlay Modal */}
+      <AnimatePresence>
+        {published && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-6 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-sm rounded-[32px] border border-[oklch(0.55_0.14_145)]/20 bg-card p-6 text-center shadow-2xl"
+            >
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[oklch(0.55_0.14_145)]/10 text-[oklch(0.5_0.14_145)]">
+                <span className="text-3xl">🎉</span>
+              </div>
+              <h3 className="mt-4 font-display text-xl font-bold text-foreground">Listing Published!</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                Your product has been successfully uploaded. Yes, the listing is published and your product is live!
+              </p>
+              <PrimaryButton
+                onClick={() => {
+                  setPublished(false);
+                  navigate({ to: "/listing" });
+                }}
+                className="mt-6 w-full"
+              >
+                Go to Listing
+              </PrimaryButton>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
