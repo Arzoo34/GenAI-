@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PublishSuccessRouteImport } from './routes/publish-success'
 import { Route as TabsRouteImport } from './routes/_tabs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ListingPreviewRouteImport } from './routes/listing.preview'
@@ -18,6 +19,11 @@ import { Route as TabsListingRouteImport } from './routes/_tabs.listing'
 import { Route as TabsHomeRouteImport } from './routes/_tabs.home'
 import { Route as TabsHealthRouteImport } from './routes/_tabs.health'
 
+const PublishSuccessRoute = PublishSuccessRouteImport.update({
+  id: '/publish-success',
+  path: '/publish-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TabsRoute = TabsRouteImport.update({
   id: '/_tabs',
   getParentRoute: () => rootRouteImport,
@@ -60,6 +66,7 @@ const TabsHealthRoute = TabsHealthRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/publish-success': typeof PublishSuccessRoute
   '/health': typeof TabsHealthRoute
   '/home': typeof TabsHomeRoute
   '/listing': typeof TabsListingRoute
@@ -69,6 +76,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/publish-success': typeof PublishSuccessRoute
   '/health': typeof TabsHealthRoute
   '/home': typeof TabsHomeRoute
   '/listing': typeof TabsListingRoute
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_tabs': typeof TabsRouteWithChildren
+  '/publish-success': typeof PublishSuccessRoute
   '/_tabs/health': typeof TabsHealthRoute
   '/_tabs/home': typeof TabsHomeRoute
   '/_tabs/listing': typeof TabsListingRoute
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/publish-success'
     | '/health'
     | '/home'
     | '/listing'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/publish-success'
     | '/health'
     | '/home'
     | '/listing'
@@ -110,6 +121,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_tabs'
+    | '/publish-success'
     | '/_tabs/health'
     | '/_tabs/home'
     | '/_tabs/listing'
@@ -121,11 +133,19 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TabsRoute: typeof TabsRouteWithChildren
+  PublishSuccessRoute: typeof PublishSuccessRoute
   ListingPreviewRoute: typeof ListingPreviewRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/publish-success': {
+      id: '/publish-success'
+      path: '/publish-success'
+      fullPath: '/publish-success'
+      preLoaderRoute: typeof PublishSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_tabs': {
       id: '/_tabs'
       path: ''
@@ -206,6 +226,7 @@ const TabsRouteWithChildren = TabsRoute._addFileChildren(TabsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TabsRoute: TabsRouteWithChildren,
+  PublishSuccessRoute: PublishSuccessRoute,
   ListingPreviewRoute: ListingPreviewRoute,
 }
 export const routeTree = rootRouteImport

@@ -59,6 +59,14 @@ export const useAppStore = create((set) => ({
   healthBrief: null,
   setHealthBrief: (brief) => set({ healthBrief: brief }),
 
+  /** @type {boolean} */
+  simulationUnlocked: false,
+  setSimulationUnlocked: (unlocked) => set({ simulationUnlocked: unlocked }),
+
+  /** @type {Record<string, any> | null} */
+  publishedListing: null,
+  setPublishedListing: (listing) => set({ publishedListing: listing }),
+
   /** @type {Array<Record<string, any>>} */
   publishedListings: [
     {

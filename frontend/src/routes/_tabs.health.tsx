@@ -54,6 +54,7 @@ function HealthPage() {
   const healthBrief = useAppStore((s) => s.healthBrief);
   const setHealthBrief = useAppStore((s) => s.setHealthBrief);
   const setSelectedLanguage = useAppStore((s) => s.setSelectedLanguage);
+  const simulationUnlocked = useAppStore((s) => s.simulationUnlocked);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,7 +102,30 @@ function HealthPage() {
     }
   }
 
+  if (!simulationUnlocked) {
+    return (
+      <div>
+        <PageHeader title={t("health")} subtitle={t("healthSubtitle")} />
+        <div className="px-5 mt-10">
+          <Card className="text-center py-10 flex flex-col items-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+              <Sparkles className="h-8 w-8" />
+            </div>
+            <h3 className="font-display text-lg font-bold text-foreground">Waiting for activity</h3>
+            <p className="mt-2 text-sm text-muted-foreground mb-6 max-w-[250px]">
+              Publish a listing and simulate some time passing to see your first weekly brief.
+            </p>
+            <a href="/home" className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground btn-lift">
+              Go to Home
+            </a>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
+
     return (
       <div>
         <PageHeader title={t("health")} subtitle={t("healthSubtitle")} />

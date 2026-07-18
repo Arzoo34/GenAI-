@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Card, PageHeader, SectionTitle, Gauge, RangoliDivider } from "@/components/ui-bits";
 import { useTranslation } from "@/lib/language-context";
+import { useAppStore } from "@/store/appStore";
 import homeIllus from "@/assets/home-illustration.jpg";
 
 export const Route = createFileRoute("/_tabs/home")({
@@ -48,6 +49,7 @@ function getGreeting(language: string, name: string): string {
 
 function HomePage() {
   const { t, businessName, language } = useTranslation();
+  const simulationUnlocked = useAppStore(s => s.simulationUnlocked);
 
   const agents = [
     { to: "/listing", label: t("listingAgent"), desc: t("listingAgentDesc"), Icon: Package, tint: "from-[oklch(0.94_0.06_75)] to-[oklch(0.98_0.03_80)]" },
@@ -190,19 +192,27 @@ function HomePage() {
         <div className="grid grid-cols-3 gap-3">
           <Card className="p-4">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground">{t("home")}</p>
-            <p className="mt-1 font-display text-2xl font-bold text-[oklch(0.55_0.14_145)]">₹14.2k</p>
-            <p className="text-[11px] text-muted-foreground">+22%</p>
+            <p className="mt-1 font-display text-2xl font-bold text-[oklch(0.55_0.14_145)]">
+              {simulationUnlocked ? "₹14.2k" : "₹0"}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {simulationUnlocked ? "+22%" : "--"}
+            </p>
           </Card>
           <Card className="p-4">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground">{t("returns")}</p>
-            <p className="mt-1 font-display text-2xl font-bold text-primary">4</p>
-            <p className="text-[11px] text-muted-foreground">−1</p>
+            <p className="mt-1 font-display text-2xl font-bold text-primary">
+              {simulationUnlocked ? "4" : "0"}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              {simulationUnlocked ? "−1" : "--"}
+            </p>
           </Card>
           <Card className="p-4">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground">{t("rto")}</p>
             <div className="mt-1 flex justify-center">
               <div className="scale-[0.55] origin-top -my-4">
-                <Gauge value={18} />
+                <Gauge value={simulationUnlocked ? 18 : 0} />
               </div>
             </div>
           </Card>

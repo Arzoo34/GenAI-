@@ -96,7 +96,7 @@ async def run_scenarios():
                 print(f"Status Code: {response.status_code}")
                 res_json = response.json()
                 print(f"category_mismatch_flagged: {res_json.get('category_mismatch_flagged')}")
-                print(f"final_listing: {res_json.get('final_listing')}")
+                print(f"final_listing: {json.dumps(res_json.get('final_listing'), ensure_ascii=True)}")
                 print("Reasoning Trace:")
                 print(json.dumps(res_json.get("agent_reasoning_trace"), indent=2))
                 

@@ -15,9 +15,19 @@ logger = logging.getLogger(__name__)
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(CURRENT_DIR, "..", "data")
 
+def normalize_path(path_str: str) -> str:
+    """Normalizes the file path to prevent LLM autocorrect failures (e.g. sciptedbyher -> scriptedbyher)."""
+    if not path_str:
+        return path_str
+    # Swap out LLM's autocorrected scriptedbyher with the actual sciptedbyher folder name
+    if "scriptedbyher" in path_str:
+        path_str = path_str.replace("scriptedbyher", "sciptedbyher")
+    return path_str
+
 @tool
 async def transcribe_audio(audio_ref: str) -> dict:
     """use ONLY if seller provided a voice recording, not if they typed text. Wraps sarvam_client.transcribe()."""
+    audio_ref = normalize_path(audio_ref)
     if not os.path.exists(audio_ref):
         return {"error": f"Audio file not found at {audio_ref}"}
         
@@ -31,6 +41,7 @@ async def transcribe_audio(audio_ref: str) -> dict:
 @tool
 async def analyze_product_image(image_ref: str, declared_category: str) -> dict:
     """checks blur, angle, background/lighting quality, and detects actual product category shown, to compare against declared_category. Wraps vision_client.analyze_image() + blur_score(), merged into one dict."""
+    image_ref = normalize_path(image_ref)
     if not os.path.exists(image_ref):
         return {"error": f"Image file not found at {image_ref}"}
         
@@ -79,7 +90,10 @@ def check_category_mismatch(declared_category: str, detected_category: str) -> d
             
     mismatch = not matched
     if mismatch:
-        message = f"Category mismatch detected: Declared category '{declared_category}' does not match the product detected in image '{detected_category}'."
+        message = (
+            f"Category mismatch detected: Declared category '{declared_category}' does not match the product detected in image '{detected_category}'. "
+            "You MUST stop immediately. Do not call generate_listing_content or any other tools."
+        )
     else:
         message = "Category match verified successfully."
         

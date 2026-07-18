@@ -40,6 +40,8 @@ function QAPage() {
   const setQnaData = useAppStore((s) => s.setQnaData);
   const selectedLanguage = useAppStore((s) => s.selectedLanguage);
   const setSelectedLanguage = useAppStore((s) => s.setSelectedLanguage);
+  const simulationUnlocked = useAppStore((s) => s.simulationUnlocked);
+  const publishedListing = useAppStore((s) => s.publishedListing);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ function QAPage() {
     setSelectedLanguage(language);
 
     const listingContext =
-      currentListing?.final_listing ?? {
+      publishedListing ?? currentListing?.final_listing ?? {
         title: "Demo Kurti",
         bullets: ["Hand block printed cotton kurti"],
         price: 899,
@@ -85,6 +87,28 @@ function QAPage() {
     pct: Math.round((p.question_count / totalPatternQuestions) * 100),
     color: TOPIC_COLORS[p.topic] ?? "oklch(0.688 0.164 47)",
   }));
+
+  if (!simulationUnlocked) {
+    return (
+      <div>
+        <PageHeader title={t("qaAgent")} subtitle={t("qaSubtitle")} />
+        <div className="px-5 mt-10">
+          <Card className="text-center py-10 flex flex-col items-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary mb-4">
+              <Sparkles className="h-8 w-8" />
+            </div>
+            <h3 className="font-display text-lg font-bold text-foreground">Waiting for activity</h3>
+            <p className="mt-2 text-sm text-muted-foreground mb-6 max-w-[250px]">
+              Publish your first listing and simulate some time passing to start seeing buyer questions here.
+            </p>
+            <a href="/home" className="inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground btn-lift">
+              Go to Home
+            </a>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

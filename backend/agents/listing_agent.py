@@ -27,7 +27,7 @@ def get_listing_agent_executor() -> AgentExecutor:
         raise ValueError("GROQ_API_KEY environment variable is not set")
         
     llm = ChatGroq(
-        model="llama-3.1-8b-instant",
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
         groq_api_key=api_key,
         temperature=0.0,
         max_retries=1
@@ -49,7 +49,9 @@ def get_listing_agent_executor() -> AgentExecutor:
             "produce a complete, risk-scored product listing. Reason step by step about which tools you actually need for this specific input:\n"
             "- If audio was provided, transcribe it first.\n"
             "- If an image was provided, analyze it and ALWAYS immediately check for category mismatch afterward. "
-            "If a mismatch is found, stop immediately and report it clearly — do not generate a listing from a mismatched photo.\n"
+            "CRITICAL: If the category mismatch check returns mismatch=True, you MUST STOP IMMEDIATELY and return the mismatch message. "
+            "Do NOT call generate_listing_content, do NOT call score_return_risk, and do NOT call check_pincode_risk. "
+            "Simply terminate and output the mismatch warning as your final answer.\n"
             "- Once you have clean input, generate the listing content (default target language is Hindi, but adapt if specified otherwise).\n"
             "- Always score the return risk of the generated listing.\n"
             "- If a pincode was provided, check its risk level as a final step.\n"
