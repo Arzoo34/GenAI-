@@ -54,14 +54,14 @@ async def generate_structured(prompt: str, target_language: str) -> Dict[str, An
     
     try:
         llm = ChatGroq(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="llama-3.3-70b-versatile",
             groq_api_key=api_key,
             timeout=15.0,
             temperature=0.0,
             max_retries=0
         )
     except Exception as e:
-        raise LLMError(f"Failed to initialize ChatGroq with meta-llama/llama-4-scout-17b-16e-instruct: {e}") from e
+        raise LLMError(f"Failed to initialize ChatGroq with llama-3.3-70b-versatile: {e}") from e
 
     # First attempt prompt
     full_prompt = f"{prompt}\n\nRespond entirely in {target_language} using native script, output ONLY valid JSON, no other text"

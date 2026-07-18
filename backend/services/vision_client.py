@@ -42,7 +42,7 @@ def _parse_json(text: str) -> dict:
 
 async def analyze_image(image_bytes: bytes) -> Dict[str, Any]:
     """
-    Analyzes a product image using Groq's vision model (meta-llama/llama-4-scout-17b-16e-instruct) to retrieve metadata.
+    Analyzes a product image using Groq's vision model (llama-3.2-11b-vision-preview) to retrieve metadata.
     Implements a 15-second timeout and a single-retry parsing logic on failure.
     
     Returns a dict with:
@@ -58,14 +58,14 @@ async def analyze_image(image_bytes: bytes) -> Dict[str, Any]:
     
     try:
         llm = ChatGroq(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="llama-3.2-11b-vision-preview",
             groq_api_key=api_key,
             timeout=15.0,
             temperature=0.0,
             max_retries=0
         )
     except Exception as e:
-        raise VisionError(f"Failed to initialize ChatGroq with meta-llama/llama-4-scout-17b-16e-instruct: {e}") from e
+        raise VisionError(f"Failed to initialize ChatGroq with llama-3.2-11b-vision-preview: {e}") from e
 
     # Simple mime-type detection
     mime_type = "image/jpeg"

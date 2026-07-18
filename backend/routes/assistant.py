@@ -191,7 +191,7 @@ async def chat_assistant(request: AssistantChatRequest):
 
     try:
         llm = ChatGroq(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="llama-3.3-70b-versatile",
             groq_api_key=api_key,
             temperature=0.7,
             max_retries=1,

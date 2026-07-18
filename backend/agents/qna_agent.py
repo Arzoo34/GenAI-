@@ -25,7 +25,7 @@ def get_qna_agent_executor() -> AgentExecutor:
         raise ValueError("GROQ_API_KEY environment variable is not set")
         
     llm = ChatGroq(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
+        model="llama-3.3-70b-versatile",
         groq_api_key=api_key,
         temperature=0.0,
         max_retries=1
