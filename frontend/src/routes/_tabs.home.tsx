@@ -50,6 +50,28 @@ function getGreeting(language: string, name: string): string {
 function HomePage() {
   const { t, businessName, language } = useTranslation();
   const simulationUnlocked = useAppStore(s => s.simulationUnlocked);
+  const publishedListings = useAppStore(s => s.publishedListings);
+
+  const hasProducts = publishedListings && publishedListings.length > 0;
+  
+  // Calculate average risk score of their products
+  const averageRisk = hasProducts
+    ? Math.round(publishedListings.reduce((sum, item) => sum + (item.risk_score || 0), 0) / publishedListings.length)
+    : (simulationUnlocked ? 18 : 0);
+  
+  const returnScore = 100 - averageRisk;
+  
+  // Calculate sales/revenue from their products (price * 12 orders)
+  const totalRevenue = hasProducts
+    ? `₹${(publishedListings.reduce((sum, item) => sum + (item.price || 0), 0) * 12).toLocaleString("en-IN")}`
+    : (simulationUnlocked ? "₹14.2k" : "₹0");
+    
+  const returnsCount = hasProducts
+    ? Math.max(1, Math.round(publishedListings.length * (averageRisk / 100) * 4))
+    : (simulationUnlocked ? 4 : 0);
+    
+  const salesChange = hasProducts ? `+${publishedListings.length * 6}%` : (simulationUnlocked ? "+22%" : "--");
+  const returnsChange = hasProducts ? `−${Math.max(1, Math.round(publishedListings.length / 2))}` : (simulationUnlocked ? "−1" : "--");
 
   const agents = [
     { to: "/listing", label: t("listingAgent"), desc: t("listingAgentDesc"), Icon: Package, tint: "from-[oklch(0.94_0.06_75)] to-[oklch(0.98_0.03_80)]" },
@@ -102,7 +124,7 @@ function HomePage() {
               <p className="text-[11px] font-semibold uppercase tracking-widest text-secondary">{t("healthAgent")}</p>
               <div className="flex items-baseline gap-2">
                 <span className="font-display text-4xl font-extrabold text-foreground">
-                  {simulationUnlocked ? "92" : "--"}
+                  {hasProducts ? returnScore : (simulationUnlocked ? "92" : "--")}
                 </span>
                 <span className="text-sm font-semibold text-[oklch(0.55_0.14_145)]">{t("scoreTitle").split(" — ")[0]}</span>
               </div>
@@ -113,7 +135,7 @@ function HomePage() {
             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: simulationUnlocked ? "92%" : "0%" }}
+                animate={{ width: hasProducts ? `${returnScore}%` : (simulationUnlocked ? "92%" : "0%") }}
                 transition={{ duration: 1.1, ease: "easeOut" }}
                 className="h-full rounded-full bg-gradient-to-r from-[oklch(0.7_0.16_140)] to-[oklch(0.82_0.16_85)]"
               />
@@ -195,26 +217,26 @@ function HomePage() {
           <Card className="p-4">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground">{t("home")}</p>
             <p className="mt-1 font-display text-2xl font-bold text-[oklch(0.55_0.14_145)]">
-              {simulationUnlocked ? "₹14.2k" : "₹0"}
+              {totalRevenue}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              {simulationUnlocked ? "+22%" : "--"}
+              {salesChange}
             </p>
           </Card>
           <Card className="p-4">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground">{t("returns")}</p>
             <p className="mt-1 font-display text-2xl font-bold text-primary">
-              {simulationUnlocked ? "4" : "0"}
+              {returnsCount}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              {simulationUnlocked ? "−1" : "--"}
+              {returnsChange}
             </p>
           </Card>
           <Card className="p-4">
             <p className="text-[11px] uppercase tracking-widest text-muted-foreground">{t("rto")}</p>
             <div className="mt-1 flex justify-center">
               <div className="scale-[0.55] origin-top -my-4">
-                <Gauge value={simulationUnlocked ? 18 : 0} />
+                <Gauge value={hasProducts ? averageRisk : (simulationUnlocked ? 18 : 0)} />
               </div>
             </div>
           </Card>

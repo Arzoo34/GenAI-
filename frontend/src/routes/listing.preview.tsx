@@ -674,6 +674,8 @@ function PreviewPage() {
                         available_sizes: selectedSizes,
                         description: description,
                         uploadedImageUrl: imageSrc,
+                        risk_score: currentListing.risk_score || 0,
+                        issues_found: currentListing.issues_found || [],
                         channels: Object.keys(selectedChannels).filter(k => selectedChannels[k])
                       };
                       addPublishedListing(newListing);

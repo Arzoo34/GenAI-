@@ -108,3 +108,15 @@ export async function getPincodeRiskBatch(inputs) {
     timeout: 30000,
   });
 }
+
+export async function sendAssistantMessage(message, history = [], language = "en") {
+  return await apiRequest("/api/assistant/chat", {
+    method: "POST",
+    body: JSON.stringify({
+      message,
+      history,
+      language,
+    }),
+    timeout: 30000,
+  });
+}

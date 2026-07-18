@@ -7,6 +7,7 @@ from routes.listing import router as listing_router
 from routes.evaluation import router as evaluation_router
 from routes.qna import router as qna_router
 from routes.health_brief import router as health_brief_router
+from routes.assistant import router as assistant_router
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,6 +22,7 @@ app.include_router(listing_router)
 app.include_router(evaluation_router)
 app.include_router(qna_router)
 app.include_router(health_brief_router)
+app.include_router(assistant_router)
 
 # Parse CORS Origins from env
 cors_origins_str = os.getenv("CORS_ORIGINS", '["*"]')

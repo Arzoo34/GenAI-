@@ -10,6 +10,7 @@ import { FullScreenLoader, ErrorState } from "@/components/SkeletonLoader";
 import { cn } from "@/lib/utils";
 import { KantriMotifDivider } from "./listing.preview";
 import { DeliveryRiskMap } from "@/components/DeliveryRiskMap";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/_tabs/listing")({
   head: () => ({ meta: [{ title: "Listing Agent — शुरुआत AI" }] }),
@@ -249,10 +250,34 @@ function ListingPage() {
         return;
       }
 
-      const primaryImageUrl = imagePreviews[0] ?? null;
+      // Upload image to Supabase Storage or convert to Base64 to persist it securely
+      let persistentImageUrl: string | null = null;
+      if (imageFiles.length > 0) {
+        if (isSupabaseConfigured && supabase) {
+          try {
+            persistentImageUrl = await uploadProductImage(imageFiles[0]);
+          } catch (e) {
+            console.warn("Supabase Storage upload failed, falling back to base64:", e);
+          }
+        }
+        
+        if (!persistentImageUrl) {
+          try {
+            persistentImageUrl = await fileToBase64(imageFiles[0]);
+          } catch (e) {
+            console.warn("Base64 image conversion failed:", e);
+          }
+        }
+      }
+
+      // Final fallback to temporary object URL if all persistent methods fail
+      if (!persistentImageUrl) {
+        persistentImageUrl = imagePreviews[0] ?? null;
+      }
+
       setCurrentListing({
         ...response,
-        uploadedImageUrl: primaryImageUrl,
+        uploadedImageUrl: persistentImageUrl,
         declared_category: declaredCategory,
         deliveryRisks: deliveryRisks,
       });
@@ -600,4 +625,54 @@ function Field({
       />
     </div>
   );
+}
+
+async function uploadProductImage(file: File): Promise<string | null> {
+  if (!supabase) return null;
+  
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+  const filePath = `products/${fileName}`;
+  
+  // Try upload
+  let { data, error } = await supabase.storage
+    .from("product-images")
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+    
+  if (error) {
+    if (error.message?.includes("not found") || (error as any).status === 404) {
+      try {
+        await supabase.storage.createBucket("product-images", { public: true });
+        const retry = await supabase.storage.from("product-images").upload(filePath, file);
+        if (retry.error) throw retry.error;
+        data = retry.data;
+      } catch (bucketErr) {
+        console.warn("Failed to auto-create bucket product-images:", bucketErr);
+        return null;
+      }
+    } else {
+      console.warn("Error uploading image to Supabase:", error.message);
+      return null;
+    }
+  }
+  
+  if (data) {
+    const { data: publicUrlData } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(filePath);
+    return publicUrlData.publicUrl;
+  }
+  return null;
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
 }

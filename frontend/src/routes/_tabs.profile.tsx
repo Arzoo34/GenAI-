@@ -114,8 +114,15 @@ function ProfilePage() {
                           });
                           navigate({ to: "/listing/preview" });
                         }}
-                        className="flex w-full text-left gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm hover:shadow-md transition-all btn-lift"
+                        className="flex w-full text-left gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm hover:shadow-md transition-all btn-lift items-center"
                       >
+                        {product.uploadedImageUrl && (
+                          <img
+                            src={product.uploadedImageUrl}
+                            alt={product.title}
+                            className="w-12 h-12 rounded-xl object-cover shrink-0 border border-border"
+                          />
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <h5 className="font-semibold text-sm text-foreground truncate">{product.title}</h5>

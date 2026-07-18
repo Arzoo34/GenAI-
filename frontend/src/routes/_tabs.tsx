@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { BottomNav } from "@/components/BottomNav";
+import { ChatbotAssistant } from "@/components/ChatbotAssistant";
 import { useAppStore } from "@/store/appStore";
 import { useEffect } from "react";
 
@@ -34,6 +35,7 @@ function TabsLayout() {
     <div className="w-full pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]">
       <Outlet />
       <BottomNav />
+      <ChatbotAssistant />
     </div>
   );
 }
