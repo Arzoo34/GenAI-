@@ -27,6 +27,15 @@ class PincodeRiskResponse(BaseModel):
     estimated_return_rate_pct: float
     status: str
 
+class PincodeRiskBatchItem(BaseModel):
+    input: str
+    matched_city: str
+    latitude: float
+    longitude: float
+    risk_level: str
+    estimated_return_rate: float
+    recommendation: str
+
 class ListingAgentResponse(BaseModel):
     final_listing: Optional[ListingContent] = None
     risk_score: Optional[float] = None

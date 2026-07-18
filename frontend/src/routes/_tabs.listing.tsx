@@ -9,6 +9,7 @@ import { useAppStore } from "@/store/appStore";
 import { FullScreenLoader, ErrorState } from "@/components/SkeletonLoader";
 import { cn } from "@/lib/utils";
 import { KantriMotifDivider } from "./listing.preview";
+import { DeliveryRiskMap } from "@/components/DeliveryRiskMap";
 
 export const Route = createFileRoute("/_tabs/listing")({
   head: () => ({ meta: [{ title: "Listing Agent — शुरुआत AI" }] }),
@@ -31,6 +32,7 @@ function ListingPage() {
 
   const [declaredCategory, setDeclaredCategory] = useState("kurti");
   const [pincode, setPincode] = useState("");
+  const [deliveryRisks, setDeliveryRisks] = useState<any[]>([]);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -215,8 +217,9 @@ function ListingPage() {
       formData.append("declared_category", declaredCategory);
       formData.append("target_language", language);
 
-      if (pincode.trim().length === 6) {
-        formData.append("pincode", pincode.trim());
+      const matchedPincode = deliveryRisks.find(r => /^\d{6}$/.test(r.input))?.input || "";
+      if (matchedPincode) {
+        formData.append("pincode", matchedPincode);
       }
 
       if (audioBlob) {
@@ -251,6 +254,7 @@ function ListingPage() {
         ...response,
         uploadedImageUrl: primaryImageUrl,
         declared_category: declaredCategory,
+        deliveryRisks: deliveryRisks,
       });
       navigate({ to: "/listing/preview" });
     } catch (err: unknown) {
@@ -408,12 +412,9 @@ function ListingPage() {
           </div>
         </div>
 
-        <Field
-          label="Delivery Pincode (optional)"
-          placeholder="e.g. 110001"
-          value={pincode}
-          onChange={(v) => setPincode(v.replace(/\D/g, "").slice(0, 6))}
-        />
+        <div className="pt-2">
+          <DeliveryRiskMap onRiskChange={setDeliveryRisks} />
+        </div>
 
         {/* Product Attributes Header */}
         <div className="flex items-center justify-between pt-4 border-t border-border/40">

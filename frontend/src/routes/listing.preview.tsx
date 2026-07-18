@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Star, Truck, ShieldCheck, Pencil, Send, Wrench, Info, Mic } from "lucide-react";
+import { ChevronLeft, Star, Truck, ShieldCheck, Pencil, Send, Wrench, Info, Mic, ShieldAlert, ToggleLeft, ToggleRight } from "lucide-react";
 import { Card, PrimaryButton, GhostButton, Gauge } from "@/components/ui-bits";
 import { useTranslation } from "@/lib/language-context";
 import { useAppStore } from "@/store/appStore";
 import sareeFallback from "@/assets/product-saree.jpg";
 import { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { DeliveryRiskMap } from "@/components/DeliveryRiskMap";
 
 export const Route = createFileRoute("/listing/preview")({
   head: () => ({ meta: [{ title: "Listing Preview — शुरुआत AI" }] }),
@@ -125,8 +126,24 @@ function PreviewPage() {
   const [description, setDescription] = useState("");
   const [detailsExpanded, setDetailsExpanded] = useState(true);
   const [isRecordingDescription, setIsRecordingDescription] = useState(false);
+  const [enforcePrepaid, setEnforcePrepaid] = useState(true);
   const recognitionRef = useRef<any>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const [showPushDrawer, setShowPushDrawer] = useState(false);
+  const [selectedChannels, setSelectedChannels] = useState<Record<string, boolean>>({
+    meesho: true,
+    amazon: false,
+    instagram: true,
+    whatsapp: true,
+  });
+
+  const channels = [
+    { id: "meesho", label: "Meesho", icon: "📦" },
+    { id: "amazon", label: "Amazon.in", icon: "🛒" },
+    { id: "instagram", label: "Instagram Shop", icon: "📸" },
+    { id: "whatsapp", label: "WhatsApp Catalog", icon: "💬" },
+  ];
 
   function handleEditClick() {
     setDetailsExpanded(true);
@@ -483,11 +500,59 @@ function PreviewPage() {
           </div>
         </div>
 
-        {/* Static Delivery & COD details badge */}
-        <div className="mt-5 space-y-2 rounded-2xl border border-border bg-card p-4">
-          <Row icon={<Truck className="h-4 w-4 text-secondary" />} label={t("deliveryBy")} />
-          <Row icon={<ShieldCheck className="h-4 w-4 text-[oklch(0.55_0.14_145)]" />} label={t("codBadge")} />
-        </div>
+        {/* Multi-Location Delivery Risk Summary Card */}
+        {currentListing?.deliveryRisks && currentListing.deliveryRisks.length > 0 ? (() => {
+          const risks = currentListing.deliveryRisks;
+          const highRiskCount = risks.filter((r: any) => r.risk_level.toLowerCase() === "high").length;
+          const totalCount = risks.length;
+          
+          return (
+            <div className="mt-5 rounded-2xl border border-border bg-card p-4 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10">
+                  <ShieldAlert className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h4 className="font-display font-semibold text-foreground">Smart COD Rule</h4>
+                  <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+                    {highRiskCount > 0 ? (
+                      <span>
+                        <strong>{highRiskCount} of your {totalCount}</strong> delivery zones are high-risk — here's our recommendation.
+                      </span>
+                    ) : (
+                      <span>
+                        All {totalCount} checked delivery zones are low/medium risk. Normal settings apply.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-3 border-t border-border/40">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground">Switch to prepaid above ₹700</p>
+                  <p className="text-xs text-muted-foreground">Automatically disables Cash on Delivery (COD) for higher-value orders.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEnforcePrepaid(!enforcePrepaid)}
+                  className="text-primary hover:text-primary-hover focus:outline-none shrink-0"
+                >
+                  {enforcePrepaid ? (
+                    <ToggleRight className="h-9 w-9 text-primary" />
+                  ) : (
+                    <ToggleLeft className="h-9 w-9 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
+            </div>
+          );
+        })() : (
+          <div className="mt-5 space-y-2 rounded-2xl border border-border bg-card p-4">
+            <Row icon={<Truck className="h-4 w-4 text-secondary" />} label={t("deliveryBy")} />
+            <Row icon={<ShieldCheck className="h-4 w-4 text-[oklch(0.55_0.14_145)]" />} label={t("codBadge")} />
+          </div>
+        )}
       </div>
 
       {/* Return Risk Evaluation summary card */}
@@ -542,30 +607,88 @@ function PreviewPage() {
           <Pencil className="h-4 w-4" /> {t("editListing")}
         </GhostButton>
         <PrimaryButton
-          onClick={() => {
-            if (currentListing) {
-              const newListing = {
-                id: `listing_${Date.now()}`,
-                title: productName,
-                price: price,
-                category: currentListing.declared_category || "kurti",
-                material: material,
-                colour: colour,
-                sleeve: sleeve,
-                occasion: occasion,
-                available_sizes: selectedSizes,
-                description: description,
-              };
-              addPublishedListing(newListing);
-              setPublishedListing(newListing);
-              navigate({ to: "/publish-success" });
-            }
-          }}
+          onClick={() => setShowPushDrawer(true)}
           className="flex-1"
         >
           <Send className="h-5 w-5" /> {t("publishStore").replace("to Store", "")}
         </PrimaryButton>
       </div>
+
+      {/* Multi-Channel Push Drawer */}
+      <AnimatePresence>
+        {showPushDrawer && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPushDrawer(false)}
+              className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] border-t border-border bg-card p-6 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] shadow-2xl md:max-w-[440px] md:mx-auto md:left-1/2 md:-translate-x-1/2"
+            >
+              <div className="mx-auto mb-6 h-1.5 w-12 rounded-full bg-border" />
+              <h3 className="font-display text-xl font-bold text-foreground">Distribute Listing</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Select the channels where you want to push this listing.</p>
+              
+              <div className="mt-6 space-y-3">
+                {channels.map(channel => (
+                  <label key={channel.id} className="flex items-center justify-between rounded-2xl border border-border bg-background p-4 cursor-pointer hover:bg-accent/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-xl bg-muted text-xl">
+                        {channel.icon}
+                      </div>
+                      <span className="font-semibold text-foreground">{channel.label}</span>
+                    </div>
+                    <div className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer"
+                        checked={selectedChannels[channel.id]}
+                        onChange={(e) => setSelectedChannels(prev => ({ ...prev, [channel.id]: e.target.checked }))}
+                      />
+                      <div className="w-11 h-6 bg-muted peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              <div className="mt-8">
+                <PrimaryButton
+                  onClick={() => {
+                    if (currentListing) {
+                      const newListing = {
+                        id: `listing_${Date.now()}`,
+                        title: productName,
+                        price: price,
+                        category: currentListing.declared_category || "kurti",
+                        material: material,
+                        colour: colour,
+                        sleeve: sleeve,
+                        occasion: occasion,
+                        available_sizes: selectedSizes,
+                        description: description,
+                        channels: Object.keys(selectedChannels).filter(k => selectedChannels[k])
+                      };
+                      addPublishedListing(newListing);
+                      setPublishedListing(newListing);
+                      navigate({ to: "/publish-success" });
+                    }
+                  }}
+                  className="w-full"
+                >
+                  <Send className="h-5 w-5" /> Push to Channels
+                </PrimaryButton>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -100,3 +100,11 @@ export async function applyHealthSuggestion(sellerId, action) {
     timeout: 30000,
   });
 }
+
+export async function getPincodeRiskBatch(inputs) {
+  return await apiRequest("/api/listing/pincode-risk-batch", {
+    method: "POST",
+    body: JSON.stringify(inputs),
+    timeout: 30000,
+  });
+}

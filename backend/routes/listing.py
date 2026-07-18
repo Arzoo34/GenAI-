@@ -5,7 +5,7 @@ import asyncio
 import uuid
 from typing import Optional, List
 from fastapi import APIRouter, Form, File, UploadFile, HTTPException
-from models.schemas import ListingAgentResponse, ListingContent, PincodeRiskResponse, AgentTraceStep
+from models.schemas import ListingAgentResponse, ListingContent, PincodeRiskResponse, AgentTraceStep, PincodeRiskBatchItem
 from agents.listing_agent import get_listing_agent_executor
 
 router = APIRouter(prefix="/api/listing", tags=["listing"])
@@ -200,3 +200,84 @@ async def run_listing_agent(
                 os.remove(image_path)
             except Exception as ce:
                 logger.error(f"Failed to delete temp image file: {ce}")
+
+@router.post("/pincode-risk-batch", response_model=List[PincodeRiskBatchItem])
+async def check_pincode_risk_batch(inputs: List[str]):
+    """
+    Evaluates risk for a batch of pincodes or city names.
+    Performs fuzzy matching for city names and exact matching for pincodes.
+    """
+    data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data")
+    pincode_path = os.path.join(data_dir, "pincode_risk.json")
+    
+    try:
+        with open(pincode_path, "r") as f:
+            data = json.load(f)
+        pincode_risks = data.get("pincode_risks", [])
+    except Exception as e:
+        logger.error(f"Failed to load pincode risks data: {e}")
+        raise HTTPException(status_code=500, detail="Pincode risk configuration error.")
+
+    results = []
+    for input_item in inputs:
+        cleaned_input = input_item.strip().lower()
+        matched_entry = None
+
+        # Try matching by pincode first
+        for entry in pincode_risks:
+            if entry.get("pincode") == input_item.strip():
+                matched_entry = entry
+                break
+        
+        # Try matching by fuzzy city_name second
+        if not matched_entry and cleaned_input:
+            for entry in pincode_risks:
+                city = entry.get("city_name", "").lower()
+                if cleaned_input in city or city in cleaned_input:
+                    matched_entry = entry
+                    break
+
+        # State names are also supported by the expanded illustrative dataset.
+        # This lets sellers add a whole delivery state (e.g. "Uttarakhand")
+        # without silently dropping a marker in the centre of India.
+        if not matched_entry and cleaned_input:
+            for entry in pincode_risks:
+                state = entry.get("state_name", "").lower()
+                if state and (cleaned_input == state or cleaned_input in state or state in cleaned_input):
+                    matched_entry = entry
+                    break
+
+        if matched_entry:
+            risk = matched_entry.get("risk_level", "medium")
+            est_rate = matched_entry.get("estimated_return_rate_pct", 15.0)
+            
+            # Formulate recommendation
+            if risk == "low":
+                recommendation = "Safe zone. Low return rates expected."
+            elif risk == "medium":
+                recommendation = "Moderate return risk. Standard logistics guidelines apply."
+            else:
+                recommendation = "High return risk! Consider disabling COD or verifying the order via call."
+
+            results.append(PincodeRiskBatchItem(
+                input=input_item,
+                matched_city=matched_entry.get("city_name", "Unknown"),
+                latitude=matched_entry.get("latitude", 22.9734),
+                longitude=matched_entry.get("longitude", 78.6569),
+                risk_level=risk,
+                estimated_return_rate=est_rate,
+                recommendation=recommendation
+            ))
+        else:
+            # Fallback
+            results.append(PincodeRiskBatchItem(
+                input=input_item,
+                matched_city=f"Unmapped: {input_item}",
+                latitude=0,
+                longitude=0,
+                risk_level="medium",
+                estimated_return_rate=15.0,
+                recommendation="General caution advised. Monitor order closely."
+            ))
+
+    return results
