@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PublishSuccessRouteImport } from './routes/publish-success'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as TabsRouteImport } from './routes/_tabs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ListingPreviewRouteImport } from './routes/listing.preview'
@@ -22,6 +23,11 @@ import { Route as TabsHealthRouteImport } from './routes/_tabs.health'
 const PublishSuccessRoute = PublishSuccessRouteImport.update({
   id: '/publish-success',
   path: '/publish-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TabsRoute = TabsRouteImport.update({
@@ -66,6 +72,7 @@ const TabsHealthRoute = TabsHealthRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/publish-success': typeof PublishSuccessRoute
   '/health': typeof TabsHealthRoute
   '/home': typeof TabsHomeRoute
@@ -76,6 +83,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/publish-success': typeof PublishSuccessRoute
   '/health': typeof TabsHealthRoute
   '/home': typeof TabsHomeRoute
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_tabs': typeof TabsRouteWithChildren
+  '/auth': typeof AuthRoute
   '/publish-success': typeof PublishSuccessRoute
   '/_tabs/health': typeof TabsHealthRoute
   '/_tabs/home': typeof TabsHomeRoute
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/publish-success'
     | '/health'
     | '/home'
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/publish-success'
     | '/health'
     | '/home'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_tabs'
+    | '/auth'
     | '/publish-success'
     | '/_tabs/health'
     | '/_tabs/home'
@@ -133,6 +145,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TabsRoute: typeof TabsRouteWithChildren
+  AuthRoute: typeof AuthRoute
   PublishSuccessRoute: typeof PublishSuccessRoute
   ListingPreviewRoute: typeof ListingPreviewRoute
 }
@@ -144,6 +157,13 @@ declare module '@tanstack/react-router' {
       path: '/publish-success'
       fullPath: '/publish-success'
       preLoaderRoute: typeof PublishSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_tabs': {
@@ -226,6 +246,7 @@ const TabsRouteWithChildren = TabsRoute._addFileChildren(TabsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TabsRoute: TabsRouteWithChildren,
+  AuthRoute: AuthRoute,
   PublishSuccessRoute: PublishSuccessRoute,
   ListingPreviewRoute: ListingPreviewRoute,
 }

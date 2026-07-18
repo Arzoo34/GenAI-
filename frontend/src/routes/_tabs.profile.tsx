@@ -11,7 +11,9 @@ export const Route = createFileRoute("/_tabs/profile")({
 });
 
 function ProfilePage() {
-  const { t, businessName } = useTranslation();
+  const { t, businessName, setBusinessName } = useTranslation();
+  const user = useAppStore((s) => s.user);
+  const logout = useAppStore((s) => s.logout);
   const publishedListings = useAppStore((s) => s.publishedListings);
   const setCurrentListing = useAppStore((s) => s.setCurrentListing);
   const navigate = useNavigate();
@@ -32,10 +34,13 @@ function ProfilePage() {
       <div className="px-5">
         <Card className="text-center">
           <div className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-gradient-to-br from-primary to-accent font-display text-3xl font-extrabold text-primary-foreground">
-            {(businessName || "Priya")[0].toUpperCase()}
+            {(businessName || user?.email || "P").trim().charAt(0).toUpperCase()}
           </div>
-          <h2 className="mt-3 font-display text-xl font-bold">{businessName || "Priya Sharma"}</h2>
-          <p className="text-sm text-muted-foreground">{businessName ? `${businessName} • Jaipur` : t("storeName")}</p>
+          <h2 className="mt-3 font-display text-xl font-bold">{businessName || user?.email?.split("@")[0] || "Priya Sharma"}</h2>
+          <p className="text-xs text-muted-foreground mt-1 max-w-[250px] mx-auto truncate">
+            {user?.email || "priya@example.com"}
+          </p>
+          <p className="text-sm text-muted-foreground mt-0.5">{businessName ? `${businessName} • Jaipur` : t("storeName")}</p>
           <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-[oklch(0.55_0.14_145)]/15 px-3 py-1 text-xs font-semibold text-[oklch(0.5_0.14_145)]">
             <Award className="h-3.5 w-3.5" /> {t("topRated")}
           </div>
@@ -148,9 +153,15 @@ function ProfilePage() {
       </div>
 
       <div className="px-5 pt-6">
-        <Link to="/" className="flex items-center justify-center gap-2 rounded-full border border-destructive/30 bg-card py-3 text-sm font-semibold text-destructive btn-lift">
+        <button
+          onClick={async () => {
+            await logout(setBusinessName);
+            navigate({ to: "/" });
+          }}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-destructive/30 bg-card py-3 text-sm font-semibold text-destructive btn-lift cursor-pointer"
+        >
           <LogOut className="h-4 w-4" /> {t("logout")}
-        </Link>
+        </button>
         <p className="mt-6 text-center text-xs text-muted-foreground">
           {t("madeWith")}
         </p>

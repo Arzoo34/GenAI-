@@ -673,6 +673,7 @@ function PreviewPage() {
                         occasion: occasion,
                         available_sizes: selectedSizes,
                         description: description,
+                        uploadedImageUrl: imageSrc,
                         channels: Object.keys(selectedChannels).filter(k => selectedChannels[k])
                       };
                       addPublishedListing(newListing);

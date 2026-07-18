@@ -12,8 +12,9 @@ import { AppLayout } from "../components/AppLayout";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/error-reporting";
-import { LanguageProvider } from "../lib/language-context";
+import { LanguageProvider, useTranslation } from "../lib/language-context";
 import { BackendStatusIndicator } from "../components/BackendStatusIndicator";
+import { useAppStore } from "../store/appStore";
 
 function NotFoundComponent() {
   return (
@@ -105,11 +106,31 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function AuthInitializer() {
+  const initializeAuth = useAppStore((s) => s.initializeAuth);
+  const { setLanguage, setBusinessName } = useTranslation();
+
+  useEffect(() => {
+    // initializeAuth returns unsubscribe cleanup in Supabase mode
+    const cleanupPromise = initializeAuth(setLanguage, setBusinessName);
+    return () => {
+      cleanupPromise.then((cleanup) => {
+        if (typeof cleanup === "function") {
+          cleanup();
+        }
+      });
+    };
+  }, [initializeAuth, setLanguage, setBusinessName]);
+
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        <AuthInitializer />
         <div className="min-h-dvh bg-background bg-block-print">
           <AppLayout className="relative mx-auto max-w-[480px] bg-background/60">
             {/* Global minimal Indian texture borders */}

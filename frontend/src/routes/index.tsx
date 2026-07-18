@@ -1,10 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Chip, PrimaryButton, RangoliDivider } from "@/components/ui-bits";
 import { useTranslation } from "@/lib/language-context";
 import { type LanguageCode } from "@/lib/translations";
+import { useAppStore } from "@/store/appStore";
 import heroImg from "@/assets/hero-entrepreneur.jpg";
 
 export const Route = createFileRoute("/")({
@@ -35,6 +36,15 @@ function Onboarding() {
   const navigate = useNavigate();
   const { language, setLanguage, t, businessName, setBusinessName } = useTranslation();
   const [cat, setCat] = useState<string | null>(null);
+
+  const user = useAppStore((s) => s.user);
+  const authLoading = useAppStore((s) => s.authLoading);
+
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate({ to: "/home" });
+    }
+  }, [user, authLoading, navigate]);
 
   return (
     <div className="pb-16">
@@ -108,10 +118,20 @@ function Onboarding() {
       </div>
 
       <div className="px-6 pt-8">
-        <PrimaryButton onClick={() => navigate({ to: "/home" })}>
+        <PrimaryButton onClick={() => {
+          // Send user to auth page to complete registration with their business name pre-filled
+          navigate({ to: "/auth" });
+        }}>
           {t("continue")} <ArrowRight className="h-5 w-5" />
         </PrimaryButton>
-        <p className="mt-3 text-center text-xs text-muted-foreground">
+
+        <div className="mt-4 text-center">
+          <Link to="/auth" className="text-sm font-semibold text-primary hover:underline">
+            {language === "hi" ? "पहले से खाता है? लॉग इन करें" : "Already have an account? Sign In"}
+          </Link>
+        </div>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
           {t("encouragement")}
         </p>
       </div>
