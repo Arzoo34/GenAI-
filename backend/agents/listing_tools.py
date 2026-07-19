@@ -103,12 +103,16 @@ def check_category_mismatch(declared_category: str, detected_category: str) -> d
     }
 
 @tool
-async def generate_listing_content(input_text: str, image_findings: dict, category: str, target_language: str) -> dict:
+async def generate_listing_content(input_text: str, category: str, target_language: str, image_findings: str = "") -> dict:
     """generates title, 5 description bullets, size_chart, price, keywords. Only call once mismatch check has passed or no image was provided. Wraps llm_client.generate_structured() with a JSON schema in the prompt."""
+    findings_str = "No image provided"
+    if image_findings:
+        findings_str = str(image_findings)
+            
     prompt = (
         f"Create an optimized e-commerce product listing for the category '{category}'.\n\n"
         f"Seller description / input details: {input_text}\n"
-        f"Multimodal image analysis findings: {json.dumps(image_findings) if image_findings else 'No image provided'}\n\n"
+        f"Multimodal image analysis findings: {findings_str}\n\n"
         "Generate a complete listing. The response MUST be a JSON object with the following fields:\n"
         "1. 'title': A catchy, search-optimized title including key product details (e.g. material, style).\n"
         "2. 'bullets': A JSON array of exactly 5 detailed feature description bullets highlighting material, comfort, occasion, styling tips, and care instructions.\n"
@@ -130,7 +134,7 @@ async def generate_listing_content(input_text: str, image_findings: dict, catego
         return {"error": f"Failed to generate listing content: {e}"}
 
 @tool
-def score_return_risk(listing: dict, category: str) -> dict:
+def score_return_risk(listing: str, category: str) -> dict:
     """scores the listing against category_benchmarks.json — checks whether each known issue is actually addressed in the listing, sums contribution_pct of unresolved issues (cap 5-95%), returns score + unresolved issues list."""
     benchmarks_path = os.path.join(DATA_DIR, "category_benchmarks.json")
     if not os.path.exists(benchmarks_path):
@@ -141,6 +145,21 @@ def score_return_risk(listing: dict, category: str) -> dict:
             benchmarks = json.load(f)
     except Exception as e:
         return {"error": f"Failed to load category benchmarks: {e}"}
+        
+    listing_dict = {}
+    if isinstance(listing, dict):
+        listing_dict = listing
+    elif isinstance(listing, str):
+        try:
+            listing_dict = json.loads(listing)
+        except Exception:
+            try:
+                import ast
+                listing_dict = ast.literal_eval(listing)
+            except Exception:
+                return {"error": "Failed to parse listing JSON from string."}
+    else:
+        return {"error": "Invalid listing format passed to tool."}
         
     # Standardize category key
     cat_key = category.strip().lower().replace(" ", "_")
@@ -159,9 +178,9 @@ def score_return_risk(listing: dict, category: str) -> dict:
     unresolved_issues = []
     total_unresolved_pct = 0
     
-    title = listing.get("title", "").lower()
-    bullets_text = " ".join(listing.get("bullets", [])).lower()
-    keywords_text = " ".join(listing.get("keywords", [])).lower()
+    title = listing_dict.get("title", "").lower()
+    bullets_text = " ".join(listing_dict.get("bullets", [])).lower()
+    keywords_text = " ".join(listing_dict.get("keywords", [])).lower()
     combined = f"{title} {bullets_text} {keywords_text}"
     
     for item in category_issues:

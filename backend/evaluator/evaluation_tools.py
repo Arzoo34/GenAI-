@@ -182,7 +182,49 @@ async def run_listing_agent(test_case_input: Dict[str, Any]) -> Dict[str, Any]:
             "output": result.get("output")
         }
     except Exception as e:
-        logger.error(f"Failed to execute listing agent on test case: {e}")
+        err_msg = str(e)
+        logger.error(f"Failed to execute listing agent on test case: {err_msg}")
+        
+        if "Category mismatch detected" in err_msg or "mismatch" in err_msg:
+            mismatch_message = "Category mismatch detected. Please upload an image matching the declared category."
+            
+            if "message':" in err_msg:
+                try:
+                    parts = err_msg.split("message':")
+                    if len(parts) > 1:
+                        sub_part = parts[1].strip()
+                        if sub_part.startswith("'") or sub_part.startswith('"'):
+                            quote_char = sub_part[0]
+                            mismatch_message = sub_part[1:].split(quote_char)[0]
+                        else:
+                            mismatch_message = sub_part.split(",")[0].strip("'\" ")
+                except Exception as parse_err:
+                    logger.warning(f"Failed to parse mismatch message: {parse_err}")
+            elif 'message":' in err_msg:
+                try:
+                    parts = err_msg.split('message":')
+                    if len(parts) > 1:
+                        sub_part = parts[1].strip()
+                        if sub_part.startswith("'") or sub_part.startswith('"'):
+                            quote_char = sub_part[0]
+                            mismatch_message = sub_part[1:].split(quote_char)[0]
+                        else:
+                            mismatch_message = sub_part.split(",")[0].strip("'\" ")
+                except Exception as parse_err:
+                    logger.warning(f"Failed to parse mismatch message: {parse_err}")
+                    
+            return {
+                "final_listing": None,
+                "risk_score": None,
+                "issues_found": [],
+                "pincode_risk": None,
+                "category_mismatch_flagged": True,
+                "mismatch_message": mismatch_message,
+                "agent_reasoning_trace": [],
+                "fallback_used": False,
+                "output": err_msg
+            }
+            
         return {"error": f"Failed to execute agent: {str(e)}"}
 
 @tool

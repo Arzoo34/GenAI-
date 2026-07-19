@@ -37,7 +37,7 @@ def fetch_questions(listing_id: str) -> List[Dict[str, Any]]:
         return []
 
 @tool
-def detect_question_pattern(questions: List[Dict[str, Any]]) -> Dict[str, Any]:
+def detect_question_pattern(questions: Any) -> Dict[str, Any]:
     """groups questions by topic similarity (keyword/semantic clustering — use simple keyword matching against a small topic taxonomy: sizing, fabric, color, delivery, price, authenticity). If any topic has 3 or more questions, flag it as a pattern. Pure logic, no LLM call needed — implement with keyword matching, not an API call. Returns {pattern_found: bool, topic: str, matched_question_ids: list[str], count: int}."""
     taxonomy = {
         "sizing": ["size", "chart", "fit", "measurement", "bust", "waist", "length", "xl", "xxl", "medium", "small", "large"],
@@ -89,7 +89,7 @@ def detect_question_pattern(questions: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 @tool
-async def draft_reply(question: str, listing_context: Dict[str, Any], target_language: str) -> str:
+async def draft_reply(question: str, listing_context: Any, target_language: str) -> str:
     """drafts a natural, helpful reply to a single buyer question in the seller's language, using listing context (title, description, size chart if relevant) to answer accurately. Wraps llm_client.generate_structured() but returns plain text, not JSON — call it only for individual questions, not for pattern-flagged topics (those get suggest_listing_fix instead)."""
     prompt = (
         f"You are a helpful customer support assistant for Shuruaat AI.\n"
@@ -109,7 +109,7 @@ async def draft_reply(question: str, listing_context: Dict[str, Any], target_lan
         return f"Error drafting reply: {str(e)}"
 
 @tool
-async def suggest_listing_fix(topic: str, matched_questions: List[str], current_listing: Dict[str, Any]) -> Dict[str, Any]:
+async def suggest_listing_fix(topic: str, matched_questions: List[str], current_listing: Any) -> Dict[str, Any]:
     """call this ONLY when detect_question_pattern found a pattern (3+ questions on the same topic). Generates a specific suggested addition/edit to the listing to close the gap (e.g., a size chart addition, a fabric detail line). Returns {suggested_addition: str, field_to_update: str}. This should NOT be called for individual one-off questions — only for confirmed patterns."""
     questions_text = "\n".join([f"- {q}" for q in matched_questions])
     

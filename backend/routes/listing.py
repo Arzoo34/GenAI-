@@ -145,8 +145,41 @@ async def run_listing_agent(
                 agent_failed = True
                 
         except (asyncio.TimeoutError, Exception) as e:
-            logger.error(f"Agent execution failed or timed out: {e}")
-            agent_failed = True
+            err_msg = str(e)
+            logger.error(f"Agent execution failed or timed out: {err_msg}")
+            
+            if "Category mismatch detected" in err_msg or "mismatch" in err_msg:
+                category_mismatch_flagged = True
+                mismatch_message = "Category mismatch detected. Please upload an image matching the declared category."
+                
+                if "message':" in err_msg:
+                    try:
+                        parts = err_msg.split("message':")
+                        if len(parts) > 1:
+                            sub_part = parts[1].strip()
+                            if sub_part.startswith("'") or sub_part.startswith('"'):
+                                quote_char = sub_part[0]
+                                mismatch_message = sub_part[1:].split(quote_char)[0]
+                            else:
+                                mismatch_message = sub_part.split(",")[0].strip("'\" ")
+                    except Exception as parse_err:
+                        logger.warning(f"Failed to parse mismatch message: {parse_err}")
+                elif 'message":' in err_msg:
+                    try:
+                        parts = err_msg.split('message":')
+                        if len(parts) > 1:
+                            sub_part = parts[1].strip()
+                            if sub_part.startswith("'") or sub_part.startswith('"'):
+                                quote_char = sub_part[0]
+                                mismatch_message = sub_part[1:].split(quote_char)[0]
+                            else:
+                                mismatch_message = sub_part.split(",")[0].strip("'\" ")
+                    except Exception as parse_err:
+                        logger.warning(f"Failed to parse mismatch message: {parse_err}")
+                
+                agent_failed = False
+            else:
+                agent_failed = True
             
         # Trigger fallback catalog recovery if the agent failed to yield listing details
         if agent_failed:
